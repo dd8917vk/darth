@@ -5,7 +5,7 @@ import os
 from collections import deque
 from io import StringIO
 import sys
-# os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+from gpiozero import Button
 
 history = deque(maxlen=5)
 
@@ -33,28 +33,29 @@ def play_sound(the_wav_file):
     import pygame
     # Set stdout back to normal
     sys.stdout = sys.__stdout__
-    # Initialyze pygame mixer for audio
+    # Initialize pygame mixer for audio
     pygame.mixer.init()
-    # file_path = Path.cwd() / "luke_4_8.wav"
-    # print(file_path)
     pygame.mixer.music.load(str(the_wav_file))
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
+        button.when_held = quit_program
         pygame.time.delay(100)
 
 
+def quit_program():
+    print("Button held down! Exiting program...")
+    sys.exit(0)
+
+
 if __name__ == "__main__":
-    start = True
-    while start:
-        user_input = str(
-            input("Would you like to play the next audio file? y or n: "))
-        if user_input == "n":
-            play_sound(Path.cwd() / "be_with_you.wav")
-            start = False
-            break
-        wav_files = get_wav_files()
-        file_to_play = get_random_wav(wav_files)
-        history.append(file_to_play)
-        print(f"Playing {file_to_play}")
-        play_sound(file_to_play)
-        time.sleep(1)
+    button = Button(17, hold_time=2, bounce_time=0.1)  # Adjust GPIO pin as needed and set hold_time for the duration to hold
+      # Define what happens when the button is held
+
+    while True:
+        if button.is_pressed:
+            wav_files = get_wav_files()
+            file_to_play = get_random_wav(wav_files)
+            history.append(file_to_play)
+            print(f"Playing {file_to_play}")
+            play_sound(file_to_play)
+            time.sleep(1)
